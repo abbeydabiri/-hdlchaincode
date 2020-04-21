@@ -1,1 +1,0 @@
-# Payment - chaincode examples with encrypted state
