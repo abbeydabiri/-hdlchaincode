@@ -37,7 +37,7 @@ type BankContract struct {
 }
 
 //Put adds a new key with value to the world state
-func (bc *BankContract) Put(ctx contractapi.TransactionContextInterface, bankID int, bankname string, hqaddress string, bankcategory string, bankadminuserID int, location string, locationlat string, locationlong string)	(err error) {
+func (sc *BankContract) Put(ctx contractapi.TransactionContextInterface, bankID int, bankname string, hqaddress string, bankcategory string, bankadminuserID int, location string, locationlat string, locationlong string)	(err error) {
 
 	if bankID == 0 {
 		err = errors.New("Bank ID can not be empty")
@@ -74,7 +74,7 @@ func (bc *BankContract) Put(ctx contractapi.TransactionContextInterface, bankID 
 }
 
 //Get retrieves the value linked to a key from the world state
-func (bc *BankContract) Get(ctx contractapi.TransactionContextInterface, key string) (*BankObj, error) {
+func (sc *BankContract) Get(ctx contractapi.TransactionContextInterface, key string) (*BankObj, error) {
 	
     existingObj, err := ctx.GetStub().GetState(key)
     if err != nil {
@@ -93,12 +93,11 @@ func (bc *BankContract) Get(ctx contractapi.TransactionContextInterface, key str
 }
 
 //History retrieves the history linked to a key from the world state
-func (bc *BankContract) History(ctx contractapi.TransactionContextInterface, key string) ([]BankHistory, error) {
+func (sc *BankContract) History(ctx contractapi.TransactionContextInterface, key string) ([]BankHistory, error) {
 
 	iter, err := ctx.GetStub().GetHistoryForKey(key)
 	if err != nil {
-        // return nil, err
-        return nil, fmt.Errorf("GetHistoryForKey %s ", err.Error())
+        return nil, err
 	}
 	defer func() { _ = iter.Close() }()
 
