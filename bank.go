@@ -3,7 +3,9 @@ package main
 import (
 	"errors"
 	"fmt"
-	
+	"time"
+	"strconv"
+	"encoding/json"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
@@ -26,7 +28,7 @@ type BankObj struct {
 type BankHistory struct {
 	TxID string `json:"txID"`
 	Timestamp time.Time  `json:"timestamp"`
-	Bank BankObj  `json:"bank"`
+	Bank *BankObj  `json:"bank"`
 }
 
 //BankContract for handling writing and reading from the world state
@@ -42,7 +44,7 @@ func (bc *BankContract) Put(ctx contractapi.TransactionContextInterface, bankID 
 		return
 	}
 
-	if bankname == 0 {
+	if bankname == "" {
 		err = errors.New("Bank Name can not be empty")
 		return 
 	}
@@ -66,7 +68,7 @@ func (bc *BankContract) Put(ctx contractapi.TransactionContextInterface, bankID 
 	}
 
 	key := strconv.Itoa(bankID)
-	objBytes, _ := json.Marshal(BankObj)	
+	objBytes, _ := json.Marshal(obj)	
 	err = ctx.GetStub().PutState(key, []byte(objBytes))
     return 
 }
@@ -83,11 +85,11 @@ func (bc *BankContract) Get(ctx contractapi.TransactionContextInterface, key str
         return nil, fmt.Errorf("Cannot read world state pair with key %s. Does not exist", key)
     }
 
-	obj := new(BankObj)
-	if err := json.Unmarshal(existingObj, obj); err != nil {
-		return fmt.Errorf("Data retrieved from world state for key %s was not of type BasicAsset", id)
+	bankObj := new(BankObj)
+	if err := json.Unmarshal(existingObj, bankObj); err != nil {
+		return nil, fmt.Errorf("Data retrieved from world state for key %s was not of type BankObj", key)
 	}
-    return existingObj, nil
+    return bankObj, nil
 }
 
 //History retrieves the history linked to a key from the world state
@@ -95,7 +97,8 @@ func (bc *BankContract) History(ctx contractapi.TransactionContextInterface, key
 
 	iter, err := ctx.GetStub().GetHistoryForKey(key)
 	if err != nil {
-        return nil, err
+        // return nil, err
+        return nil, fmt.Errorf("GetHistoryForKey %s ", err.Error())
 	}
 	defer func() { _ = iter.Close() }()
 
@@ -112,7 +115,7 @@ func (bc *BankContract) History(ctx contractapi.TransactionContextInterface, key
 		}
 
 		entry := BankHistory{
-			TxId:      state.GetTxId(),
+			TxID:      state.GetTxId(),
 			Timestamp: time.Unix(state.GetTimestamp().GetSeconds(), 0),
 			Bank:     entryObj,
 		}

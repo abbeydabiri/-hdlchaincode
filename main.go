@@ -6,12 +6,14 @@ import (
 
 func main() {
 	
-	bankContract := new(Bank)
-
+	bankContract := new(BankContract)
     cc, err := contractapi.NewChaincode(bankContract)
 
     if err != nil {
         panic(err.Error())
     }
 
+	if err := cc.Start(); err != nil {
+        panic(err.Error())
+    }
 }
